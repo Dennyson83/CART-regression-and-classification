@@ -1,0 +1,38 @@
+# IMPORT YOUR DATA
+data_gpcr = read.xlsx("x")
+glimpse(data_gpcr)
+sympthom_columns = colnames(data_gpcr[,c(29:37)])
+
+# DATA MINING
+data_gpcr$muscleache  = ifelse(data_gpcr$muscleache == 2, 0, 1)
+data_gpcr$anosmia     = ifelse(data_gpcr$anosmia == 2, 0, 1)
+data_gpcr$dysgeusia   = ifelse(data_gpcr$dysgeusia == 2, 0, 1)
+data_gpcr$headache    = ifelse(data_gpcr$headache == 2, 0, 1)
+data_gpcr$diarrhea    = ifelse(data_gpcr$diarrhea == 2, 0, 1)
+data_gpcr$vomiting    = ifelse(data_gpcr$vomiting == 2, 0, 1)
+data_gpcr$stomachpain = ifelse(data_gpcr$stomachpain == 2, 0, 1)
+data_gpcr$rash        = ifelse(data_gpcr$rash == 2, 0, 1)
+data_gpcr$fever       = ifelse(data_gpcr$fever == 2, 0, 1)
+
+RF_data = data_gpcr[,-c(21:28)]
+colnames(RF_data) = c("Age", "Sex", "Group", "Sample", "ATR1ab", "ATR2ab", "ACEIIab",
+                      "MASRab","BradyR1ab", "a1adrRab", "b1adrRab", "b2adrRab",
+                      "M3Rab", "M4Rab", "M5Rab", "CXCR3ab", "PAR1ab", "C5aRab",
+                      "N1Rab", "STAB1ab","muscleache", "anosmia", "dysgeusia",
+                      "headache", "diarrhea", "vomiting", "stomachpain", "rash", "fever")
+
+aab_levels = colnames(RF_data[5:20])
+
+cart_RF_classification = RF_data
+cart_RF_classification$group.1 = ifelse(cart_RF_classification$Group == 'Control', 0, ifelse(cart_RF_classification$Group == 'Mild', 0, 1))
+cart_RF_classification$group.1 = ifelse(cart_RF_classification$group.1 == 0, "no", "yes")
+
+CART_RF_cart = cart_RF_classification[,c(21:30)]
+
+set.seed(234) 
+sample(1:nrow(CART_RF_cart), 100) -> train
+CART_RF_cart[ train,] -> data_RF_CART_train
+CART_RF_cart[-train,] -> data_RF_CART_test
+
+fit.tree_ML_RF_score = rpart(group.1 ~ ., data = data_RF_CART_train, method = "class", cp=0.008)
+rpart.plot(fit.tree_df_score, box.palette = "Reds") # plot decision tree 
